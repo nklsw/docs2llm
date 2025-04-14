@@ -32,8 +32,9 @@ def setup_logging(verbose=False, log_file=None, use_rich=True):
 
     # Create console handler, using Rich if available
     if use_rich:
-        console_handler = RichHandler(console=console, rich_tracebacks=True, 
-                                    show_time=False, show_path=False)
+        console_handler = RichHandler(
+            console=console, rich_tracebacks=True, show_time=False, show_path=False
+        )
         root_logger.addHandler(console_handler)
     else:
         console_handler = logging.StreamHandler(sys.stdout)
@@ -126,7 +127,7 @@ def markdown_to_text(markdown_content):
 
 def clone_repository(repo_path, temp_dir, branch=None):
     """Clone a GitHub repository to a local directory.
-    
+
     Args:
         repo_path: GitHub repository URL or owner/repo format
         temp_dir: Directory to clone the repository into
@@ -149,7 +150,7 @@ def clone_repository(repo_path, temp_dir, branch=None):
         # Traditional owner/repo format (for backward compatibility)
         clone_url = f"https://github.com/{repo_path}.git"
         owner_repo = repo_path
-    
+
     logging.info(f"Cloning repository {clone_url} to temporary directory")
 
     start_time = time.time()
@@ -207,7 +208,7 @@ def find_documentation_files(repo_dir, max_depth=3):
     logging.info(f"Searching for documentation files (max depth: {max_depth})")
 
     # Skip .git directory
-    with console.status(f"[bold blue]Scanning repository...", spinner="dots") as status:
+    with console.status("[bold blue]Scanning repository...", spinner="dots") as status:
         # Walk the directory tree
         for root, dirs, files in os.walk(repo_dir):
             # Remove .git directory from traversal
@@ -269,14 +270,18 @@ def process_documentation_files(repo_dir, doc_files):
 
     logging.info(f"Processing {len(doc_files)} documentation files")
 
-    with console.status(f"[bold blue]Processing documentation files...", spinner="dots") as status:
+    with console.status(
+        "[bold blue]Processing documentation files...", spinner="dots"
+    ) as status:
         file_count = 0
-        
+
         for file_path in sorted_files:
             full_path = os.path.join(repo_dir, file_path)
             try:
                 file_count += 1
-                status.update(f"[cyan]Processing: {file_path} ({file_count}/{len(doc_files)})")
+                status.update(
+                    f"[cyan]Processing: {file_path} ({file_count}/{len(doc_files)})"
+                )
                 logging.debug(f"Processing {file_path}...")
 
                 # Read file content
@@ -302,7 +307,7 @@ def process_documentation_files(repo_dir, doc_files):
 
             except Exception as e:
                 logging.error(f"Error processing {file_path}: {e}", exc_info=True)
-        
+
         status.update("[bold green]Processing complete")
 
     total_length = sum(len(text) for text in docs_text)
@@ -311,16 +316,16 @@ def process_documentation_files(repo_dir, doc_files):
 
 
 def extract_documentation(
-    local_path=None, 
-    git_repo=None, 
-    output_file="llm_context.txt", 
-    max_depth=3, 
-    branch=None, 
-    verbose=False, 
-    log_file=None
+    local_path=None,
+    git_repo=None,
+    output_file="llm_context.txt",
+    max_depth=3,
+    branch=None,
+    verbose=False,
+    log_file=None,
 ):
     """Extract documentation from a local directory or a GitHub repository.
-    
+
     Args:
         local_path: Path to a local directory containing documentation
         git_repo: GitHub repository in the format 'owner/repo'
@@ -329,40 +334,39 @@ def extract_documentation(
         branch: Specific branch to clone (only used with git_repo)
         verbose: Enable verbose logging
         log_file: Path to a file where logs will be written in addition to the console
-        
+
     Returns:
         bool: True if the extraction was successful, False otherwise
     """
     # Setup logging
     setup_logging(verbose=verbose, log_file=log_file)
-    
+
     # Determine if we're using a local path or git repo
     is_local = local_path is not None
-    source_path = local_path if is_local else git_repo
-    
+
     try:
         if is_local:
             # Using local directory
             if not exists(local_path):
                 logging.error(f"Local path does not exist: {local_path}")
                 return False
-                
+
             if not isdir(local_path):
                 logging.error(f"Path is not a directory: {local_path}")
                 return False
-                
+
             logging.info(f"Using local directory: {local_path}")
-            
+
             # Process the local directory
             doc_files = find_documentation_files(local_path, max_depth)
-            
+
             if not doc_files:
                 logging.warning("No documentation files found in the directory.")
                 return False
-                
+
             # Process the documentation files
             docs_text = process_documentation_files(local_path, doc_files)
-            
+
             # Create header for local directory
             dir_name = os.path.basename(os.path.abspath(local_path))
             header = f"""# Documentation from local directory: {local_path}
@@ -421,7 +425,7 @@ It is formatted for use as context with large language models.
             return False
 
         file_size_kb = os.path.getsize(output_file) / 1024
-        
+
         console.print(f"[bold green]Documentation saved to [blue]{output_file}[/blue]")
         console.print(f"[bold green]Total size: [yellow]{file_size_kb:.1f}[/yellow] KB")
 
@@ -430,7 +434,7 @@ It is formatted for use as context with large language models.
                 f"[bold yellow]Warning: The output file is large ({file_size_kb:.1f} KB). "
                 f"This may exceed context limits for some LLMs.[/bold yellow]"
             )
-        
+
         return True
 
     except Exception as e:

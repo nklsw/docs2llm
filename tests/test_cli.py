@@ -33,12 +33,16 @@ def test_cli_missing_inputs(runner):
     """Test that the CLI shows an error when no inputs are provided."""
     result = runner.invoke(main, [])
     assert result.exit_code == 1
-    assert "Error: Either a local path or --git option must be provided" in result.output
+    assert (
+        "Error: Either a local path or --git option must be provided" in result.output
+    )
 
 
 def test_cli_conflicting_inputs(runner):
     """Test that the CLI shows an error when both local path and git repo are provided."""
-    result = runner.invoke(main, ["local/path", "--git", "https://github.com/owner/repo.git"])
+    result = runner.invoke(
+        main, ["local/path", "--git", "https://github.com/owner/repo.git"]
+    )
     assert result.exit_code == 1
     assert "Error: Cannot specify both a local path and --git" in result.output
 
@@ -48,17 +52,17 @@ def test_cli_local_path(mock_extract, runner, temp_dir):
     """Test CLI with local path input."""
     # Configure the mock to return True (success)
     mock_extract.return_value = True
-    
+
     # Create a test directory
     test_dir = os.path.join(temp_dir, "test_docs")
     os.makedirs(test_dir)
-    
+
     # Execute the CLI command
     result = runner.invoke(main, [test_dir, "--output", "test_output.txt"])
-    
+
     # Verify CLI behavior
     assert result.exit_code == 0
-    
+
     # Verify extract_documentation was called with correct arguments
     mock_extract.assert_called_once_with(
         local_path=test_dir,
@@ -67,7 +71,7 @@ def test_cli_local_path(mock_extract, runner, temp_dir):
         max_depth=3,
         branch=None,
         verbose=False,
-        log_file=None
+        log_file=None,
     )
 
 
@@ -76,21 +80,27 @@ def test_cli_git_repo(mock_extract, runner):
     """Test CLI with git repository input."""
     # Configure the mock to return True (success)
     mock_extract.return_value = True
-    
+
     # Test URL
     test_repo = "https://github.com/owner/repo.git"
-    
+
     # Execute the CLI command
-    result = runner.invoke(main, [
-        "--git", test_repo,
-        "--output", "git_output.txt",
-        "--branch", "main",
-        "--verbose"
-    ])
-    
+    result = runner.invoke(
+        main,
+        [
+            "--git",
+            test_repo,
+            "--output",
+            "git_output.txt",
+            "--branch",
+            "main",
+            "--verbose",
+        ],
+    )
+
     # Verify CLI behavior
     assert result.exit_code == 0
-    
+
     # Verify extract_documentation was called with correct arguments
     mock_extract.assert_called_once_with(
         local_path=None,
@@ -99,7 +109,7 @@ def test_cli_git_repo(mock_extract, runner):
         max_depth=3,
         branch="main",
         verbose=True,
-        log_file=None
+        log_file=None,
     )
 
 
@@ -108,20 +118,28 @@ def test_cli_with_all_options(mock_extract, runner):
     """Test CLI with all available options."""
     # Configure the mock to return True (success)
     mock_extract.return_value = True
-    
+
     # Execute the CLI command with all options
-    result = runner.invoke(main, [
-        "--git", "https://github.com/owner/repo.git",
-        "--output", "full_options.txt",
-        "--max-depth", "5",
-        "--branch", "develop",
-        "--verbose",
-        "--log-file", "test.log"
-    ])
-    
+    result = runner.invoke(
+        main,
+        [
+            "--git",
+            "https://github.com/owner/repo.git",
+            "--output",
+            "full_options.txt",
+            "--max-depth",
+            "5",
+            "--branch",
+            "develop",
+            "--verbose",
+            "--log-file",
+            "test.log",
+        ],
+    )
+
     # Verify CLI behavior
     assert result.exit_code == 0
-    
+
     # Verify extract_documentation was called with correct arguments
     mock_extract.assert_called_once_with(
         local_path=None,
@@ -130,7 +148,7 @@ def test_cli_with_all_options(mock_extract, runner):
         max_depth=5,
         branch="develop",
         verbose=True,
-        log_file="test.log"
+        log_file="test.log",
     )
 
 
@@ -139,9 +157,9 @@ def test_cli_failure_case(mock_extract, runner):
     """Test CLI when extraction fails."""
     # Configure the mock to return False (failure)
     mock_extract.return_value = False
-    
+
     # Execute the CLI command
     result = runner.invoke(main, ["nonexistent/path"])
-    
+
     # Verify CLI returns error code
     assert result.exit_code == 1
